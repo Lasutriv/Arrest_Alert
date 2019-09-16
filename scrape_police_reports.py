@@ -10,7 +10,7 @@ import time
 
 def main():
     data_rows = gather_data_from_MO_reports()
-    display_data_rows(data_rows)
+    display_data_rows(data_rows, filter_troop_id='C')
 
 # DATA COLLECTION
 
@@ -43,17 +43,44 @@ def gather_data_from_MO_reports():
 # DATA DISPLAY
 
 
-def display_data_rows(data_rows: list, filter_city=None, filter_date=None, filter_time=None, filter_county=None, filter_troop_id=None):
+def display_data_rows(data_rows: list, filter_age=None, filter_city=None, filter_date=None, filter_time=None, filter_county=None, filter_troop_id=None):
+    """
+    Function used to display aggregated data from the Missouri Police Reports
+    website in a pandas dataframe view. The data can be filtered with many
+    different variations.
+
+    Note: filter_age uses this syntax: filter_age='begin_int-end_int'
+
+    :param data_rows:
+    :param filter_age:
+    :param filter_city:
+    :param filter_date:
+    :param filter_time:
+    :param filter_county:
+    :param filter_troop_id:
+    :return:
+    """
     arrest_age, arrest_city_state, arrest_date, arrest_time, arrest_county, arrest_troop_id = '', '', '', '', '', ''
     column_names = ['Age', 'City/State', 'Date', 'Time', 'County', 'Troop ID']
     data_filtered = []
     for row in data_rows:
         # Apply filters
-        arrest_age = row[0]
+        if filter_age is None:
+            arrest_age = row[0]
+        else:
+            if '-' in filter_age:
+                diced_ages = filter_age.split('-')
+                diced_begin, diced_end = diced_ages[0], diced_ages[1]
+                if int(diced_begin) <= int(row[0]) <= int(diced_end):
+                    arrest_age = row[0]
+            else:
+                if filter_age == row[0]:
+                    arrest_age = row[0]
         if filter_city is None:
             arrest_city_state = row[1]
         else:
-            if filter_city.upper() == row[1]:
+            special_filter_city = filter_city + ', MO'
+            if special_filter_city.upper() == row[1]:
                 arrest_city_state = row[1]
         if filter_date is None:
             arrest_date = row[2]
@@ -81,6 +108,9 @@ def display_data_rows(data_rows: list, filter_city=None, filter_date=None, filte
             data_filtered.append([arrest_age, arrest_city_state, arrest_date, arrest_time, arrest_county, arrest_troop_id])
             # print(f'Age: {arrest_age}, City/State: {arrest_city_state}, Date: {arrest_date}, Time: {arrest_time}, '
             #       f'County: {arrest_county}, Troop ID: {arrest_troop_id}')
+
+        # Reset variables
+        arrest_age, arrest_city_state, arrest_date, arrest_time, arrest_county, arrest_troop_id = '', '', '', '', '', ''
 
     print(pd.DataFrame(data=data_filtered, index=None, columns=column_names))
 
