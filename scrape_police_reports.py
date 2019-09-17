@@ -9,8 +9,56 @@ import time
 
 
 def main():
+    # TODO: Create a fully autonomous routine check that allows for specific
+    # CONT: parameters to be passed and if triggered, a notification is then
+    # CONT: created.
+    # Test
     data_rows = gather_data_from_MO_reports()
-    display_data_rows(data_rows, filter_troop_id='C')
+    display_data_rows(data_rows)
+
+
+# DATA MACHINE
+
+def start_auto_data_check(update_time: int):
+    """
+    A function that automatically grabs data and compares against the report
+    file to see if anything needs to be added.
+    Note for update_time: 900 = 15mins, 1800 = 30mins, 3600 = 1hr
+
+    :param update_time: the time between data grabs. Should be in seconds.
+    :return: none
+    """
+    # TODO: Finish making below.
+    while True:
+        data_rows = gather_data_from_MO_reports()
+        time.sleep(3600)  # Hr break between updates
+
+
+def general_notification_trigger(update_time: int):
+    """
+    A function that checks whether the report file got a new arrest report entry.
+
+    Note for update_time: 900 = 15mins, 1800 = 30mins, 3600 = 1hr
+
+    :param update_time: the time between data grabs. Should be in seconds.
+    :return: none
+    """
+    # TODO: Make below.
+    return
+
+
+def specific_notification_trigger(update_time: int):
+    """
+    A function that checks any parameters triggers passed against the report file
+    to see whether or not a notification should be generated.
+
+    Note for update_time: 900 = 15mins, 1800 = 30mins, 3600 = 1hr
+
+    :param update_time: the time between data grabs. Should be in seconds.
+    :return: none
+    """
+    # TODO: Make below.
+    return
 
 # DATA COLLECTION
 
@@ -51,14 +99,14 @@ def display_data_rows(data_rows: list, filter_age=None, filter_city=None, filter
 
     Note: filter_age uses this syntax: filter_age='begin_int-end_int'
 
-    :param data_rows:
-    :param filter_age:
-    :param filter_city:
-    :param filter_date:
-    :param filter_time:
-    :param filter_county:
-    :param filter_troop_id:
-    :return:
+    :param data_rows: a list of rows that contain all of the spliced data from Missouri's police report website
+    :param filter_age: a filter parameter to see either a range of ages or a specific age
+    :param filter_city: a filter parameter to see arrests from specific cities
+    :param filter_date: a filter parameter to see arrests from a specific date
+    :param filter_time: a filter parameter to see arrests from a specific time
+    :param filter_county: a filter parameter to see arrests from a specific county
+    :param filter_troop_id: a filter parameter to see arrests from a specific highway patrol troop
+    :return: none
     """
     arrest_age, arrest_city_state, arrest_date, arrest_time, arrest_county, arrest_troop_id = '', '', '', '', '', ''
     column_names = ['Age', 'City/State', 'Date', 'Time', 'County', 'Troop ID']
@@ -118,6 +166,12 @@ def display_data_rows(data_rows: list, filter_age=None, filter_city=None, filter
 
 
 def roundrobin(*iterables):
+    """
+    A tool used to intertwine lists in my scenario. Recipe credited to George Sakkis.
+
+    :param iterables: lists, tuples, and strings are all iterables
+    :return: combined iterable
+    """
     "roundrobin('ABC', 'D', 'EF') --> A D E B F C"
     # Recipe credited to George Sakkis
     num_active = len(iterables)
@@ -133,12 +187,15 @@ def roundrobin(*iterables):
 
 
 def return_data_set_rows(data_set):
-    # Row builder, note: there are 7 columns in a row and we don't want the first column because
+    # Row builder, noting there are 7 columns in a row and we don't want the first column because
     # it contains the name of the individuals
     col_counter = 0
     rows = []
     row_info = []
 
+    # Note: We skip the very first row as it contains names. This is to abide
+    # Note: by guidelines set from Missouri State Highway Patrol in an email
+    # Note: chain exchange.
     for arrest_col in data_set:
         col_counter += 1
         if col_counter > 1:
