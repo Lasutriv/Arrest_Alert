@@ -3,16 +3,21 @@
 #
 from bs4 import BeautifulSoup
 from itertools import cycle, islice
+import datetime
 import pandas as pd
 import requests
 import time
 
+# Uses:
+# 1. Auto check MO State Highway Patrol Arrest Reports page and pull data needed to update local database.
+# 2. Single check on MO State Highway Patrol Arrest Reports
+# 3.
+
+# TODO: Get specific criminal activity from scraping and then create collection between arrest info and criminal activity
+# CONT: Note: Create database table/key style logging
+
 
 def main():
-    # TODO: Create a fully autonomous routine check that allows for specific
-    # CONT: parameters to be passed and if triggered, a notification is then
-    # CONT: created.
-
     # Test
     file_with_data = 'MO_Arrest_Data.txt'
     start_single_data_check(file_with_data)
@@ -31,18 +36,14 @@ def start_auto_data_check(file_with_data: str, update_time: int):
     :param update_time: the time between data grabs. Should be in seconds.
     :return: none
     """
-    # TODO: Finish making below.
     while True:
         data_rows = gather_data_from_mo_reports(file_with_data)
         if data_rows == '':
             exit()
         else:
-            filtered_data = filter_data_rows(data_rows)
-            # TODO: Check if file exists, if so compare new/old and find last option so we don't push existing content
-            # CONT: to the file.
-            return
+            check_add_data_to_file(file_with_data, data_rows)
 
-        # time.sleep(update_time)  # Hr break between updates
+        time.sleep(update_time)  # Hr break between updates
 
 
 def start_single_data_check(file_with_data: str):
@@ -56,14 +57,14 @@ def start_single_data_check(file_with_data: str):
     if data_rows == '':
         exit()
     else:
-        add_new_data_to_file(file_with_data, data_rows)
+        check_add_data_to_file(file_with_data, data_rows)
         # filtered_data = filter_data_rows(data_rows)
         # display_data_rows(filtered_data)
 
 
-def general_notification_trigger(update_time: int):
+def general_notification_push(update_time: int):
     """
-    A function that checks whether the report file got a new arrest report entry.
+    A function that pushes a notification if there is a new arrest report entry.
 
     Note for update_time: 900 = 15mins, 1800 = 30mins, 3600 = 1hr
 
@@ -74,9 +75,9 @@ def general_notification_trigger(update_time: int):
     return
 
 
-def specific_notification_trigger(update_time: int):
+def specific_notification_push(update_time: int):
     """
-    A function that checks any parameters triggers passed against the report file
+    A function that checks any parameter passed against the report file
     to see whether or not a notification should be generated.
 
     Note for update_time: 900 = 15mins, 1800 = 30mins, 3600 = 1hr
@@ -90,7 +91,7 @@ def specific_notification_trigger(update_time: int):
 # DATA COLLECTION
 
 
-def add_new_data_to_file(file_with_data: str, unfiltered_data: list):
+def check_add_data_to_file(file_with_data: str, unfiltered_data: list):
     """
     A function to check and see if the gathered data should be added to the arrest data file.
 
@@ -99,29 +100,54 @@ def add_new_data_to_file(file_with_data: str, unfiltered_data: list):
     :param unfiltered_data: data from the MO arrest reports website
     :type unfiltered_data: list
     :return: none
+
+    Example:
+        data = get_data(file)
+
+        if data empty:
+            exit
+        else:
+            check_add_data_to_file(file, data)
     """
     read_lines = []
     write_lines = []
     # Gather data from file
-    with open(file_with_data, 'r') as file:
-        read_lines = file.readlines()
+    try:
+        with open(file_with_data, 'r') as file:
+            read_lines = file.readlines()
+    except FileNotFoundError:
+        file = open(file_with_data, 'w')
+        file.close()
 
-    # Compare file data with scraped data
+    # Compare file data with scraped data and add data that isn't in the file data
     if len(read_lines) is 0:
         for data in unfiltered_data:
             write_lines.append(data)
     else:
-        pass
+        for line in unfiltered_data:
+            # Check to make sure the time is between 1-12, if larger than there's a storing issue from the website
+            if int(line[3].split(':')[0]) / 12 > 1:
+                break
+            # Elements 2 and 3 in 'line' are 'date' and 'time'
+            if line[2] in read_lines[0] and line[3] in read_lines[0]:
+                break
+            else:
+                write_lines.append(line)
 
-    for line in write_lines:
-        print('New line: ' + line.replace('\n', ''))
-    # Add data from scraped that wasn't in file
-    # with open(file_with_data, 'w') as file:
-    #     for line in write_lines:
-    #         line = str(line) + '\n'
-    #         file.write(line)
+    # Add data from scraped that wasn't in file if there is data
+    if len(write_lines) is not 0:
+        for line in write_lines:
+            print('New line: ', line)
+        with open(file_with_data, 'w') as file:
+            for line in write_lines:
+                line = str(line) + '\n'
+                file.write(line)
+            for line in read_lines:
+                file.write(line)
 
-    print('File updated.')
+        print('File updated at', datetime.datetime.now(), '.')
+    else:
+        print('File not updated at', datetime.datetime.now(), '.')
 
 
 def gather_data_from_mo_reports(file_with_data: str):
@@ -143,6 +169,7 @@ def gather_data_from_mo_reports(file_with_data: str):
         # arrests_info1 = soup.find_all('td', class_='infoCellPrint')
         # arrests_info2 = soup.find_all('td', class_='infoCell2Print')
         # print(arrests_info1[0].find('a').get('href'))
+        # return
         arrests_data2 = soup.find_all('td', class_='infoCell2')  # 7 cols in a row
         arrests_data1_rows = []  # Used to aggregate all the columns of the data set for infoCell
         arrests_data2_rows = []  # Used to aggregate all the columns of the data set for infoCell2
@@ -151,23 +178,11 @@ def gather_data_from_mo_reports(file_with_data: str):
         arrests_data1_rows = return_data_set_rows(arrests_data1)
         arrests_data2_rows = return_data_set_rows(arrests_data2)
         arrests_data_rows = roundrobin(arrests_data1_rows, arrests_data2_rows)
+
+        return arrests_data_rows
     except requests.ConnectionError as excep:
-        print('Connection error: ' + str(excep) + '\n\nReading from ' + file_with_data + ':')
-        read_info = []
-
-        try:
-            with open(file_with_data, 'r') as file:
-                read_info = file.read()
-            if read_info != '':
-                return read_info
-            else:
-                print('Nothing here to parse. Exiting.')
-                return ''
-        except FileNotFoundError:
-            file_opened = open(file_with_data, 'w')
-            file_opened.close()
-
-    return arrests_data_rows
+        print('Connection error: ' + str(excep) + '\n\n' + 'Exiting.')
+        exit()
 
 
 # DATA DISPLAY
