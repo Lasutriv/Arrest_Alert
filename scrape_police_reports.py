@@ -135,9 +135,11 @@ def check_add_data_to_file(file_with_data: str, unfiltered_data: list):
                 write_lines.append(line)
 
     # Add data from scraped that wasn't in file if there is data
+    entry_count = 0
     if len(write_lines) is not 0:
         for line in write_lines:
             print('New line: ', line)
+            entry_count += 1
         with open(file_with_data, 'w') as file:
             for line in write_lines:
                 line = str(line) + '\n'
@@ -145,9 +147,9 @@ def check_add_data_to_file(file_with_data: str, unfiltered_data: list):
             for line in read_lines:
                 file.write(line)
 
-        print('File updated at', datetime.datetime.now(), '.')
+        print(f'File updated at {datetime.datetime.now()} with a total of {entry_count} entries.')
     else:
-        print('File not updated at', datetime.datetime.now(), '.')
+        print(f'File not updated at {datetime.datetime.now()}.')
 
 
 def gather_data_from_mo_reports(file_with_data: str):
