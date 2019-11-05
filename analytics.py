@@ -10,14 +10,16 @@ import time
 def main():
     # TODO: Create analytics of the arrests for Missouri, whether it's specific
     # CONT: crimes in certain areas, how often crimes happen in MO, or other.
-    # general_stat_info()
-    category_dict = count_identifier_in_category('Age')
-    stat_category_info('Age', category_dict)
+    # Categories: Age, Places, Date, Time, County, Troop
+    category = 'County'
+    display_stat_category_info(category, get_count_of_identifiers_in_category(category))
+    display_general_stat_info()
+
 
 # Low level functions: Exploratory Analysis
 
 
-def count_arrests(file='MO_Arrest_Data.txt'):
+def get_arrests(file='MO_Arrest_Data.txt'):
     """
     A function to count the length of the arrest data file, which in turn gives
     us the arrest amount since the first given day.
@@ -36,58 +38,77 @@ def count_arrests(file='MO_Arrest_Data.txt'):
     return arrest_count
 
 
-def count_identifier_in_category(category: str, file='MO_Arrest_Data.txt'):
+def get_count_of_identifiers_in_category(category: str, file='MO_Arrest_Data.txt'):
     """
+    A function that returns a dict where the keys are specific variables
+    within the observation and the values are the number of times that
+    observation was counted in the data set.
 
+    Example observation:
+    ['40', 'THAYER,MO', '10/14/2019', '1:27PM', 'HOWELL', 'G']
 
-    :param category:
-    :param file:
-    :return:
+    :param category: the desired variable from the observation to parse
+    :type category: str
+    :param file: the specific file name with the historical data
+    :type file: str
+    :return: a dict with the ages and the count for each age
+    :rtype: dict
     """
-    # Example 'categories_age = {26: 1, 28: 5}'
-    categories_age = {}
-    categories_places = {}
-    categories_date = {}
-    categories_time = {}
-    categories_county = {}
-    categories_troop = {}
+    # Example of return values: 'key_val_dict  = {26: 1, 28: 5}'
+    categories = {'Age': 0, 'Places': 1, 'Date': 2, 'Time': 3, 'County': 4, 'Troop': 5}
+    observation_index = categories[category]
+    key_val_dict = {}
     with open(file, 'r') as opened_file:
         for line in opened_file:
             line_list = ast.literal_eval(line)
-            if category == 'Age':
-                # Add age to list of ages or add onto amount in specific age
-                # if age is already in list
-                if line_list[0] not in categories_age:
-                    categories_age[line_list[0]] = 1
-                else:
-                    categories_age[line_list[0]] += 1
-            elif category == 'Places':
-                pass
-            elif category == 'Date':
-                pass
-            elif category == 'Time':
-                pass
-            elif category == 'County':
-                pass
-            elif category == 'Troop':
-                pass
 
-    # Display data desired
-    if category == 'Age':
-        return categories_age
-    elif category == 'Places':
-        pass
-    elif category == 'Date':
-        pass
-    elif category == 'Time':
-        pass
-    elif category == 'County':
-        pass
-    elif category == 'Troop':
-        pass
+            # Cleanse any data that needs to be cleansed
+            if observation_index == 0:
+                pass
+            if observation_index == 1 or observation_index == 4:
+                if '.' in line_list[observation_index]:
+                    line_list[observation_index] = line_list[observation_index].replace('.', '')
+                elif "'" in line_list[observation_index]:
+                    line_list[observation_index] = line_list[observation_index].replace("'", ' ')
+                # TODO: Add changing of state name to the state's abbreviation
+
+            # Add key to list of keys or add onto amount in specific key
+            # if key is already in list
+            if line_list[observation_index] not in key_val_dict:
+                key_val_dict[line_list[observation_index]] = 1
+            else:
+                key_val_dict[line_list[observation_index]] += 1
+
+    return key_val_dict
 
 
-def count_total_days_scraping(file='MO_Arrest_Data.txt'):
+def get_min_max_arrests_in_category(category_dict: dict):
+    """
+    A function to return the min and max value count of a given category.
+
+    :param category_dict: the historical keys/values of a particular category
+    :type category_dict: dict
+    :return: two dicts in a list, the min and max value of the given category
+    :rtype: list
+    """
+    min = {'': 999}
+    min_key = ''
+    max = {'': 1}
+    max_key = ''
+    for key in category_dict:
+        if category_dict[key] > max['']:
+            max[''] = category_dict[key]
+            max_key = key
+        elif category_dict[key] < min['']:
+            min[''] = category_dict[key]
+            min_key = key
+
+    min[min_key], max[max_key] = min.pop(''), max.pop('')
+
+    return [min, max]
+
+
+def get_total_days_scraping(file='MO_Arrest_Data.txt'):
     """
     A function to calculate the amount of days between the first observed
     and the last observed arrest.
@@ -120,33 +141,72 @@ def count_total_days_scraping(file='MO_Arrest_Data.txt'):
     return days_counting_arrests.days
 
 
-def stat_arrests_per_day():
+def display_basic_stat_arrests():
     """
     A function to calculate the average arrests per day.
 
     :return: none
     :rtype: none
     """
-    print(f'Mean arrests per day in MO: {count_arrests() / count_total_days_scraping():.2f} people.')
+    print(f'Total arrests: {get_arrests()} arrests')
+    print(f'Total days counting: {get_total_days_scraping()} days')
+    print(f'Mean arrests per day in MO: {get_arrests() / get_total_days_scraping():.2f} people.')
 
 
-def stat_category_info(category: str, category_dict):
+def display_stat_category_info(category: str, category_dict: dict):
+    """
+    A function to display formatted category info based on the category
+    passed as a parameter.
+
+    Example usage:
+    display_stat_category_info('County', get_count_of_identifiers_in_category('County'))
+
+    :param category: the desired variable from the observation to parse
+    :type category: str
+    :param category_dict: the historical keys/values of a particular category
+    :type category_dict: dict
+    :return: none
+    :rtype: none
+    """
     if category == 'Age':
         print('Age\t\t| Amount')
         for key in sorted(category_dict):
-            print(f'{key} yrs\t| {category_dict[key]} ppl')
+            print(f'{key} yrs\t| {category_dict[key]} arrest(s)')
+    elif category == 'Places':
+        print('Place\t\t| Amount')
+        for key in sorted(category_dict):
+            print(f'{key}\t| {category_dict[key]} arrest(s)')
+    elif category == 'Date':
+        print('Date\t\t| Amount')
+        for key in sorted(category_dict):
+            print(f'{key}\t| {category_dict[key]} arrest(s)')
+    elif category == 'Time':
+        print('Time\t\t| Amount')
+        for key in sorted(category_dict):
+            print(f'{key}\t| {category_dict[key]} arrest(s)')
+    elif category == 'County':
+        print('County\t\t| Amount')
+        for key in sorted(category_dict):
+            print(f'{key}\t| {category_dict[key]} arrest(s)')
+    elif category == 'Troop':
+        print('Troop\t| Amount')
+        for key in sorted(category_dict):
+            print(f'{key}\t\t| {category_dict[key]} arrest(s)')
+
+    min, max = get_min_max_arrests_in_category(get_count_of_identifiers_in_category(category))
+    print(f'Min: {min}\nMax: {max}')
 
 # High level functions: Function usage
 
 
-def general_stat_info():
+def display_general_stat_info():
     """
     A function that can be called to give general statistics on the historical data.
 
     :return: none, but other functions within thee will display information.
     :rtype: none
     """
-    stat_arrests_per_day()
+    display_basic_stat_arrests()
 
 
 if __name__ == '__main__':
