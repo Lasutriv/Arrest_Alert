@@ -147,7 +147,7 @@ def check_add_data_to_file(file_with_data: str, unfiltered_data: list):
             for line in read_lines:
                 file.write(line)
 
-        print(f'File updated at {datetime.datetime.now()} with a total of {entry_count} entries.')
+        print(f'File updated at {datetime.datetime.now()} with a total of {entry_count} entrie(s).')
     else:
         print(f'File not updated at {datetime.datetime.now()}.')
 
