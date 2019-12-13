@@ -11,7 +11,7 @@ def main():
     # TODO: Create analytics of the arrests for Missouri, whether it's specific
     # CONT: crimes in certain areas, how often crimes happen in MO, or other.
     # Categories: Age, Places, Date, Time, County, Troop
-    category = 'County'
+    category = 'Age'
     display_stat_category_info(category, get_count_of_identifiers_in_category(category))
     display_general_stat_info()
 

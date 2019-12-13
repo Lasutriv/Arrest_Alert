@@ -37,7 +37,7 @@ def start_auto_data_check(file_with_data: str, update_time: int):
     :return: none
     """
     while True:
-        data_rows = gather_data_from_mo_reports(file_with_data)
+        data_rows = gather_data_from_mo_reports()
         if data_rows == '':
             exit()
         else:
@@ -53,7 +53,7 @@ def start_single_data_check(file_with_data: str):
     :param file_with_data: the file to compare the gathered data against to see if entries are needed to be added
     :return: none
     """
-    data_rows = gather_data_from_mo_reports(file_with_data)
+    data_rows = gather_data_from_mo_reports()
     if data_rows == '':
         exit()
     else:
@@ -152,12 +152,10 @@ def check_add_data_to_file(file_with_data: str, unfiltered_data: list):
         print(f'File not updated at {datetime.datetime.now()}.')
 
 
-def gather_data_from_mo_reports(file_with_data: str):
+def gather_data_from_mo_reports():
     """
     A function that obtains all of the rows and their columns of data from MO's arrest report.
 
-    :param file_with_data: the file to compare the gathered data against to see if entries are needed to be added
-    :type file_with_data: str
     :return: list of rows from all the data sets
     """
     site = 'https://www.mshp.dps.missouri.gov/HP71/SearchAction'
