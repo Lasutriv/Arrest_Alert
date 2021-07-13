@@ -11,7 +11,7 @@ def main():
     # TODO: Create analytics of the arrests for Missouri, whether it's specific
     # CONT: crimes in certain areas, how often crimes happen in MO, or other.
     # Categories: Age, Places, Date, Time, County, Troop
-    category = 'Age'
+    category = 'Age'  # Change this to a specific category to receive new information
     display_stat_category_info(category, get_count_of_identifiers_in_category(category))
     display_general_stat_info()
 
@@ -40,9 +40,8 @@ def get_arrests(file='MO_Arrest_Data.txt'):
 
 def get_count_of_identifiers_in_category(category: str, file='MO_Arrest_Data.txt'):
     """
-    A function that returns a dict where the keys are specific variables
-    within the observation and the values are the number of times that
-    observation was counted in the data set.
+    A function that returns a dict where the keys are specific variables within the observation and the values are the
+    number of times that observation was counted in the data set.
 
     Example observation:
     ['40', 'THAYER,MO', '10/14/2019', '1:27PM', 'HOWELL', 'G']
@@ -63,21 +62,21 @@ def get_count_of_identifiers_in_category(category: str, file='MO_Arrest_Data.txt
             line_list = ast.literal_eval(line)
 
             # Cleanse any data that needs to be cleansed
-            if observation_index == 0:
+            if observation_index == 0:  # Don't need to cleanse data for age
                 pass
-            if observation_index == 1 or observation_index == 4:
+            if observation_index == 1 or observation_index == 4:  # Cleanse data for Places and County
                 if '.' in line_list[observation_index]:
                     line_list[observation_index] = line_list[observation_index].replace('.', '')
-                elif "'" in line_list[observation_index]:
+                if "'" in line_list[observation_index]:
                     line_list[observation_index] = line_list[observation_index].replace("'", ' ')
-                # TODO: Add changing of state name to the state's abbreviation
+                # TODO: Add changing of state name to the state's abbreviation. Like 'Missouri' to 'MO'
 
             # Add key to list of keys or add onto amount in specific key
             # if key is already in list
             if line_list[observation_index] not in key_val_dict:
-                key_val_dict[line_list[observation_index]] = 1
+                key_val_dict[line_list[observation_index]] = 1  # Start counting the specific key
             else:
-                key_val_dict[line_list[observation_index]] += 1
+                key_val_dict[line_list[observation_index]] += 1  # Add onto the count for a given key
 
     return key_val_dict
 
@@ -99,7 +98,7 @@ def get_min_max_arrests_in_category(category_dict: dict):
         if category_dict[key] > max['']:
             max[''] = category_dict[key]
             max_key = key
-        elif category_dict[key] < min['']:
+        if category_dict[key] < min['']:
             min[''] = category_dict[key]
             min_key = key
 
