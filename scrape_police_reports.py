@@ -11,9 +11,9 @@ import time
 # Uses:
 # 1. Auto check MO State Highway Patrol Arrest Reports page and pull data needed to update local database.
 # 2. Single check on MO State Highway Patrol Arrest Reports
-# 3.
 
-# TODO: Get specific criminal activity from scraping and then create collection between arrest info and criminal activity
+# TODO: Get specific criminal activity from scraping and then create collection between arrest info and criminal
+# CONT: activity.
 # CONT: Note: Create database table/key style logging
 
 
@@ -120,7 +120,7 @@ def check_add_data_to_file(file_with_data: str, unfiltered_data: list):
         file.close()
 
     # Compare file data with scraped data and add data that isn't in the file data
-    if len(read_lines) is 0:
+    if len(read_lines) is 0: # Empty file
         for data in unfiltered_data:
             write_lines.append(data)
     else:
@@ -164,13 +164,16 @@ def gather_data_from_mo_reports():
     try:
         page = requests.get(site)
         soup = BeautifulSoup(page.content, 'html.parser')
-        arrests_data1 = soup.find_all('td', class_='infoCell')  # 7 cols in a row
+        # 7 cols in a row, class_ is searching for specific html class
+        arrests_data1 = soup.find_all('td', class_='infoCell')
         # TODO: Incorporate the below arrest info under each arrest
         # arrests_info1 = soup.find_all('td', class_='infoCellPrint')
         # arrests_info2 = soup.find_all('td', class_='infoCell2Print')
         # print(arrests_info1[0].find('a').get('href'))
         # return
-        arrests_data2 = soup.find_all('td', class_='infoCell2')  # 7 cols in a row
+
+        # 7 cols in a row, class_ is searching for specific html class
+        arrests_data2 = soup.find_all('td', class_='infoCell2')
         arrests_data1_rows = []  # Used to aggregate all the columns of the data set for infoCell
         arrests_data2_rows = []  # Used to aggregate all the columns of the data set for infoCell2
         data_sets = [arrests_data1, arrests_data2]
@@ -200,11 +203,11 @@ def display_data_rows(filtered_data: list):
 # DATA FILTER
 
 
-def filter_data_rows(data_rows: list, filter_age=None, filter_city=None, filter_date=None, filter_time=None, filter_county=None, filter_troop_id=None):
+def filter_data_rows(data_rows: list, filter_age=None, filter_city=None, filter_date=None, filter_time=None,
+                     filter_county=None, filter_troop_id=None):
     """
-    Function used to filter  aggregated data from the Missouri Police Reports
-    website in a pandas dataframe view. The data can be filtered with many
-    different variations.
+    Function used to filter aggregated data from the Missouri Police Reports website in a pandas dataframe view. The
+    data can be filtered with many different variations.
 
     Inserted data looks like:
 
@@ -262,8 +265,10 @@ def filter_data_rows(data_rows: list, filter_age=None, filter_city=None, filter_
                 arrest_troop_id = row[5]
 
         # Only display data that has been filtered and pulled correctly
-        if arrest_age != '' and arrest_city_state != '' and arrest_date != '' and arrest_time != '' and arrest_county != '' and arrest_troop_id != '':
-            data_filtered.append([arrest_age, arrest_city_state, arrest_date, arrest_time, arrest_county, arrest_troop_id])
+        if arrest_age != '' and arrest_city_state != '' and arrest_date != '' and arrest_time != '' \
+                and arrest_county != '' and arrest_troop_id != '':
+            data_filtered.append([arrest_age, arrest_city_state, arrest_date, arrest_time, arrest_county,
+                                  arrest_troop_id])
             # print(f'Age: {arrest_age}, City/State: {arrest_city_state}, Date: {arrest_date}, Time: {arrest_time}, '
             #       f'County: {arrest_county}, Troop ID: {arrest_troop_id}')
 
